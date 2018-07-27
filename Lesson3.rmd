@@ -1,0 +1,374 @@
+Lesson 3
+===================================================
+
+##Reading Data
+
+```{r}
+
+getwd()
+setwd("C:/Users/Usuario/Desktop")
+list.files()
+
+pf<-read.csv("pseudo_facebook.tsv", sep= "\t")
+
+
+```
+
+## Histogram of User's Birthday
+```{r}
+library(ggplot2)
+
+names(pf)
+
+qplot(x=dob_day, data=pf) +
+  scale_x_continuous(breaks=1:31)
+
+
+```
+
+##Install ggthemes
+
+```{r}
+
+##install.packages('ggthemes', dependencies = TRUE) 
+##library("ggthemes")
+
+```
+
+## Using Theme Minimal Font size 24
+
+```{r}
+theme_set(theme_minimal(24))
+ggplot(aes(x = dob_day), data = pf) + 
+  geom_histogram(binwidth = 1) + 
+  scale_x_continuous(breaks = 1:31)
+
+```
+
+##Faceting
+```{r}
+
+qplot(x=dob_day, data=pf) +
+  scale_x_continuous(breaks=1:31) +
+  facet_wrap(~dob_month, ncol=3)
+
+```
+
+
+
+
+##Faceting in GGPLOT
+```{r}
+
+ggplot(data = pf, aes(x = dob_day)) + 
+  geom_histogram(binwidth = 1) + 
+  scale_x_continuous(breaks = 1:31) + 
+  facet_wrap(~dob_month)
+
+```
+
+##Friend Count
+```{r}
+
+qplot(x=friend_count, data=pf)
+
+```
+
+##Limit the axes
+```{r}
+
+qplot(x=friend_count, data=pf, xlim=c(0,1000))
+
+qplot(x=friend_count, data=pf) +
+  scale_x_continuous(limits=c(0,1000))
+
+```
+
+##Adjusting then Bin Width
+```{r}
+qplot(x=friend_count, data=pf, binwidth=25) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50))
+
+```
+
+##Faceting by gender
+```{r}
+
+qplot(x=friend_count, data=pf, binwidth=25) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) +
+  facet_wrap(~gender)
+
+```
+
+##Omitting NA gender Observations
+```{r}
+
+qplot(x=friend_count, data=subset(pf,!is.na(gender)), binwidth=25) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) +
+  facet_wrap(~gender)
+
+```
+
+```{r}
+
+qplot(x=friend_count, data=na.omit(pf), binwidth=25) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) +
+  facet_wrap(~gender)
+
+```
+
+## Statistics 'by' Gender
+```{r}
+
+table(pf$gender)
+
+```
+
+```{r}
+
+by(pf$friend_count, pf$gender,summary)
+
+```
+
+## Tenure
+```{r}
+
+qplot(x = tenure, data=pf, binwidth=30,
+      color = I('black'), fill =I('#099DD9'))
+
+```
+
+## Tenure measured in years
+
+```{r}
+
+qplot(x = tenure/365, data=pf, binwidth=.25,
+      color = I('black'), fill =I('#F79420')) +
+  scale_x_continuous(limits=c(0,8))
+
+```
+
+## Labeling Plots
+
+```{r}
+
+qplot(x = tenure/365, data=pf, binwidth=.25,
+      xlab= 'Number of years using Facebook',
+      ylab= 'Number of users in sample',
+      color = I('black'), fill =I('#F79420')) +
+  scale_x_continuous(limits=c(0,7), breaks = seq(1,7,1))
+
+```
+
+## Histogram for Ages
+
+```{r}
+
+qplot(x = age, data=pf, binwidth=5,
+      xlab= 'Age users in Facebook',
+      ylab= 'Number of users in sample',
+      color = I('black'), fill =I('blue')) +
+  scale_x_continuous(limits=c(10,120), breaks = seq(10,120,10))
+
+summary(pf$age)
+
+```
+
+## Transforming Data
+```{r}
+
+qplot(x=friend_count, data = pf)
+
+summary(pf$friend_count)
+
+summary(log10(pf$friend_count))
+
+summary(log10(pf$friend_count + 1))
+
+summary(sqrt(pf$friend_count))
+
+```
+
+## Install GridExtra
+
+```{r}
+
+##install.packages('gridExtra') 
+##library(gridExtra) 
+
+```
+
+## Create Multiple plots in One Image Output
+
+```{r}
+
+p1 <- qplot(x=friend_count, data=pf)
+p2 <- qplot(x=log10(friend_count + 1), data=pf)
+p3 <- qplot(x=sqrt(friend_count), data=pf) 
+
+grid.arrange(p1,p2,p3, ncol=1)
+
+
+```
+
+```{r}
+
+p1 <- ggplot(aes(x=friend_count), data=pf) +
+  geom_histogram()
+
+p2 <- p1 + scale_x_log10()
+
+p3 <- p1 + scale_x_sqrt()
+
+grid.arrange(p1,p2,p3, ncol=1)
+
+```
+
+## Add a Scaling Layer
+```{r}
+
+logScale <- qplot(x=log10(friend_count), data=pf)
+
+countScale <- ggplot(aes(x=friend_count), data=pf) +
+  geom_histogram() +
+  scale_x_log10()
+
+grid.arrange(logScale, countScale, ncol=2)
+
+qplot(x=friend_count, data=pf) +
+  scale_x_log10()
+ 
+```
+
+## Frecuency Polygons (before we had histograms)
+```{r}
+
+qplot(x=friend_count, data=subset(pf,!is.na(gender)), binwidth=10) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) +
+  facet_wrap(~gender)
+
+qplot(x=friend_count, y=..count../sum(..count..),
+      data=subset(pf,!is.na(gender)), 
+      xlab = 'Friend Count',
+      ylab = 'Proportion of Users with that friend count',
+      binwidth=10, geom='freqpoly', color=gender) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) 
+
+```
+
+## Frecuency polygon to determine wich gender makes more likes
+
+```{r}
+
+qplot(x=www_likes, 
+      data=subset(pf,!is.na(gender)), 
+      xlab = 'www likes received',
+      ylab = 'Proportion of likes',
+      geom='freqpoly', color=gender) +
+  scale_x_log10()
+
+```
+
+## Likes on the web solution
+```{r}
+
+by(pf$www_likes, pf$gender,sum)
+
+```
+
+## Histograms
+```{r}
+
+qplot(x=friend_count, data=subset(pf,!is.na(gender)),
+      binwidth=25) +
+  scale_x_continuous(limits=c(0,1000), breaks=seq(0,1000,50)) +
+  facet_wrap(~gender)
+
+```
+
+## Box Plots
+```{r}
+
+qplot(x=gender, y=friend_count, data = subset(pf, !is.na(gender)), geom='boxplot')
+
+```
+
+```{r}
+
+qplot(x=gender, y=friend_count, data = subset(pf, !is.na(gender)), geom='boxplot',
+      ylim=c(1,1000))
+
+```
+
+```{r}
+
+qplot(x=gender, y=friend_count, data = subset(pf, !is.na(gender)), geom='boxplot') +
+  scale_y_continuous(limits=c(0,1000))
+
+
+```
+
+
+## Box Plots, Quartiles, and Friend Requests
+```{r}
+
+qplot(x=gender, y=friend_count, data = subset(pf, !is.na(gender)), geom='boxplot') +
+  coord_cartesian(ylim=c(0,1000))
+
+```
+
+```{r}
+
+qplot(x=gender, y=friend_count, data = subset(pf, !is.na(gender)), geom='boxplot') +
+  coord_cartesian(ylim=c(0,250))
+
+```
+
+```{r}
+
+by(pf$friend_count,pf$gender,summary)
+
+```
+
+
+```{r}
+
+by(pf$friendships_initiated,pf$gender,summary)
+
+```
+
+```{r}
+
+qplot(x=gender, y=friendships_initiated, data = subset(pf, !is.na(gender)), geom='boxplot') +
+  coord_cartesian(ylim=c(0,150))
+
+```
+
+## Getting Logical
+
+```{r}
+
+names(pf)
+summary(pf$mobile_likes)
+
+```
+
+```{r}
+summary(pf$mobile_likes>0)
+
+```
+
+```{r}
+
+mobile_check_in <- NA
+pf$mobile_check_in <- ifelse(pf$mobile_likes>0,1,0)
+
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+
+summary(pf$mobile_check_in)
+ 
+sum(pf$mobile_check_in == 1)/length(pf$mobile_check_in)
+
+```
+
+
